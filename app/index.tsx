@@ -3,12 +3,12 @@ import { Button, StyleSheet, Text, View } from "react-native";
 import NumberFlow from "./NumberFlow"; // Import the NumberFlow component
 
 const App: React.FC = () => {
-  const [value, setValue] = useState(123.4); // Initial numeric value
+  const [value, setValue] = useState(1234); // Initial numeric value
   const [isAutoChanging, setIsAutoChanging] = useState(false); // Toggle for auto-change mode
 
-  // Function to generate random numbers for testing
+  // Function to generate random numbers for testing with more dynamic ranges
   const generateRandomValue = () => {
-    const randomIntPart = Math.floor(Math.random() * 10000); // Generate random integer part
+    const randomIntPart = Math.floor(Math.random() * 100000); // Generate random integer part up to 99999
     const randomDecPart = Math.floor(Math.random() * 100) / 100; // Generate random decimal part
     return parseFloat((randomIntPart + randomDecPart).toFixed(2)); // Combine and format
   };
@@ -20,7 +20,7 @@ const App: React.FC = () => {
     if (isAutoChanging) {
       interval = setInterval(() => {
         setValue(generateRandomValue());
-      }, 5000); // Update every second
+      }, 800); // Update every 800ms
     }
 
     return () => {
@@ -32,10 +32,10 @@ const App: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🎰 Jackpot Slot Machine 🎰</Text>
+      <Text style={styles.title}>🎰 Number Flow 🎰</Text>
       {/* Slot Machine Display */}
       <View style={styles.slotContainer}>
-        <NumberFlow value={value} duration={4000} />
+        <NumberFlow value={value} duration={800} />
       </View>
 
       <View style={styles.buttonContainer}>
@@ -47,16 +47,16 @@ const App: React.FC = () => {
           title="Stop Auto Change"
           onPress={() => setIsAutoChanging(false)}
         />
-        <Button title="Increase to 124.23" onPress={() => setValue(124.23)} />
-        <Button title="Decrease to 2123.98" onPress={() => setValue(2123.98)} />
-        <Button title="Increase to 9999" onPress={() => setValue(9999)} />
-        <Button title="Decrease to 1.23" onPress={() => setValue(1.23)} />
-        <Button title="Increase to 5678.9" onPress={() => setValue(5678.9)} />
+        <Button
+          title="Increase to 99999.99"
+          onPress={() => setValue(99999.99)}
+        />
+        <Button title="Decrease to 0.01" onPress={() => setValue(0.01)} />
         <Button
           title="Random Value"
           onPress={() => setValue(generateRandomValue())}
         />
-        <Button title="Reset to 0" onPress={() => setValue(0)} />
+        <Button title="Reset to 1234" onPress={() => setValue(1234)} />
       </View>
     </View>
   );
@@ -67,32 +67,32 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#f8f8f8",
     paddingHorizontal: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
-    color: "#333",
+    color: "#444",
   },
   slotContainer: {
-    marginVertical: 40,
-    height: 50, // Ensure fixed height for consistent alignment
+    marginVertical: 50,
+    height: 50,
     flexDirection: "row",
-    alignItems: "center", // Vertically center items
-    justifyContent: "center", // Horizontally center items
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 2,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    padding: 10,
+    borderColor: "#ccc",
+    borderRadius: 12,
+    padding: 15,
     backgroundColor: "#fff",
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
-    elevation: 3,
+    elevation: 5,
   },
   buttonContainer: {
     width: "100%",

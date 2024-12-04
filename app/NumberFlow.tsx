@@ -11,6 +11,7 @@ interface DigitProps {
   prevValue: number;
   direction: "up" | "down";
   duration?: number;
+  fadeOut?: boolean;
 }
 
 const Digit: React.FC<DigitProps> = ({
@@ -18,12 +19,17 @@ const Digit: React.FC<DigitProps> = ({
   prevValue,
   direction,
   duration = 1000,
+  fadeOut = false,
 }) => {
-  const stepHeight = 40; // 각 숫자의 높이
-  const totalDigits = 10; // 0~9
+  const stepHeight = 40; // Each digit's height
+  const totalDigits = 10; // 0-9
   const translateY = useSharedValue(0);
+  const opacity = useSharedValue(1);
 
   useEffect(() => {
+    // Reset opacity to 1 when the digit changes
+    opacity.value = 1;
+
     const initialPosition = -(prevValue + totalDigits) * stepHeight;
     translateY.value = initialPosition;
 
@@ -37,13 +43,17 @@ const Digit: React.FC<DigitProps> = ({
         ? initialPosition - distance * stepHeight
         : initialPosition + distance * stepHeight;
 
-    translateY.value = withTiming(targetValue, { duration }, () => {
-      translateY.value = -(value + totalDigits) * stepHeight;
-    });
-  }, [value, prevValue, direction, duration, translateY]);
+    translateY.value = withTiming(targetValue, { duration });
+
+    // Fade out if required
+    if (fadeOut) {
+      opacity.value = withTiming(0, { duration });
+    }
+  }, [direction, duration, fadeOut, opacity, prevValue, translateY, value]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
+    opacity: fadeOut ? opacity.value : 1,
   }));
 
   const digits = Array.from(
@@ -73,6 +83,9 @@ const NumberFlow: React.FC<NumberFlowProps> = ({ value, duration = 1000 }) => {
   const prevValueRef = useRef(value);
   const prevValue = prevValueRef.current;
 
+  // Track `translateX` for left movement
+  const translateX = useSharedValue(0);
+
   useEffect(() => {
     prevValueRef.current = value;
   }, [value]);
@@ -80,11 +93,10 @@ const NumberFlow: React.FC<NumberFlowProps> = ({ value, duration = 1000 }) => {
   const valueStr = String(value);
   const prevValueStr = String(prevValue);
 
-  // 정수 및 소수점 분리
+  // Split integer and decimal parts
   const [valueIntPart, valueDecPart = ""] = valueStr.split(".");
   const [prevValueIntPart, prevValueDecPart = ""] = prevValueStr.split(".");
 
-  // 자리수를 패딩 처리해 같은 자리수끼리 비교
   const maxIntLength = Math.max(valueIntPart.length, prevValueIntPart.length);
   const paddedValueInt = valueIntPart.padStart(maxIntLength, "0");
   const paddedPrevValueInt = prevValueIntPart.padStart(maxIntLength, "0");
@@ -99,58 +111,69 @@ const NumberFlow: React.FC<NumberFlowProps> = ({ value, duration = 1000 }) => {
   const valueDecDigits = paddedValueDec.split("").map(Number);
   const prevValueDecDigits = paddedPrevValueDec.split("").map(Number);
 
-  // 방향 계산
   const direction =
     parseFloat(valueStr) >= parseFloat(prevValueStr) ? "up" : "down";
 
-  const hasDecimalPart = valueDecPart.length > 0;
+  // Calculate how much to move left (based on removed digits)
+  useEffect(() => {
+    const removedDigitsCount = prevValueIntPart.length - valueIntPart.length;
+    if (removedDigitsCount > 0) {
+      translateX.value = withTiming(-removedDigitsCount * 40, { duration });
+    } else {
+      translateX.value = withTiming(0, { duration });
+    }
+  }, [valueIntPart, prevValueIntPart, translateX, duration]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  const renderDigit = (
+    digit: number,
+    prevDigit: number,
+    isFadingOut: boolean,
+    key: string
+  ) => (
+    <Animated.View key={key}>
+      <Digit
+        value={digit}
+        prevValue={prevDigit}
+        direction={direction}
+        duration={duration}
+        fadeOut={isFadingOut}
+      />
+    </Animated.View>
+  );
 
   return (
-    <View style={styles.container}>
-      {/* 정수 부분 */}
+    <Animated.View style={[styles.container, animatedStyle]}>
+      {/* Integer Part */}
       {valueIntDigits.map((digit, index) =>
-        index < maxIntLength - valueIntPart.length ? null : (
-          <Animated.View
-            key={`int-${index}`}
-            // exiting={FadeOutRight.duration(duration / 2)} // 빠르게 사라짐
-          >
-            <Digit
-              value={digit}
-              prevValue={prevValueIntDigits[index] || 0}
-              direction={direction}
-              duration={duration}
-            />
-          </Animated.View>
+        renderDigit(
+          digit,
+          prevValueIntDigits[index] || 0,
+          index < maxIntLength - valueIntPart.length,
+          `int-${index}`
         )
       )}
 
-      {/* 소수점 */}
-      {hasDecimalPart && (
-        <Animated.View
-          key="decimal"
-          // exiting={FadeOutRight.duration(duration / 2)} // 빠르게 사라짐
-        >
+      {/* Decimal Point */}
+      {valueDecPart.length > 0 && (
+        <Animated.View key="decimal">
           <Text style={styles.decimal}>.</Text>
         </Animated.View>
       )}
 
-      {/* 소수 부분 */}
+      {/* Decimal Part */}
       {valueDecDigits.map((digit, index) =>
-        index >= valueDecPart.length ? null : (
-          <Animated.View
-            key={`dec-${index}`}
-            // exiting={FadeOutRight.duration(duration / 2)} // 빠르게 사라짐
-          >
-            <Digit
-              value={digit}
-              prevValue={prevValueDecDigits[index] || 0}
-              direction={direction}
-              duration={duration}
-            />
-          </Animated.View>
+        renderDigit(
+          digit,
+          prevValueDecDigits[index] || 0,
+          index >= valueDecPart.length,
+          `dec-${index}`
         )
       )}
-    </View>
+    </Animated.View>
   );
 };
 
