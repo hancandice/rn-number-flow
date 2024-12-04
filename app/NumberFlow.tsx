@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -16,79 +16,85 @@ interface DigitProps {
   color: string;
 }
 
-const Digit: React.FC<DigitProps> = ({
-  value,
-  prevValue,
-  direction,
-  duration = 1000,
-  fadeOut = false,
-  fadeIn = false,
-  color,
-}) => {
-  const stepHeight = 40; // Each digit's height
-  const totalDigits = 10; // 0-9
-  const translateY = useSharedValue(0);
-  const opacity = useSharedValue(1);
-
-  useEffect(() => {
-    opacity.value = fadeIn ? 0 : 1;
-
-    const initialPosition = -(prevValue + totalDigits) * stepHeight;
-    translateY.value = initialPosition;
-
-    const distance =
-      direction === "up"
-        ? (value + totalDigits - prevValue) % totalDigits
-        : (prevValue + totalDigits - value) % totalDigits;
-
-    const targetValue =
-      direction === "up"
-        ? initialPosition - distance * stepHeight
-        : initialPosition + distance * stepHeight;
-
-    // Animate digit position
-    translateY.value = withTiming(targetValue, { duration });
-
-    // Handle fadeOut and fadeIn animations
-    if (fadeOut) {
-      opacity.value = withTiming(0, { duration });
-    }
-    if (fadeIn) {
-      opacity.value = withTiming(1, { duration });
-    }
-  }, [
-    direction,
-    duration,
-    fadeIn,
-    fadeOut,
-    opacity,
-    prevValue,
-    translateY,
+const Digit: React.FC<DigitProps> = React.memo(
+  ({
     value,
-  ]);
+    prevValue,
+    direction,
+    duration = 1000,
+    fadeOut,
+    fadeIn,
+    color,
+  }) => {
+    const stepHeight = 40; // Digit height
+    const totalDigits = 10; // 0-9
+    const translateY = useSharedValue(0);
+    const opacity = useSharedValue(1);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-    opacity: opacity.value,
-  }));
+    useEffect(() => {
+      opacity.value = fadeIn ? 0 : 1;
 
-  const digits = Array.from(
-    { length: totalDigits * 3 },
-    (_, i) => i % totalDigits
-  );
+      const initialPosition = -(prevValue + totalDigits) * stepHeight;
+      translateY.value = initialPosition;
 
-  return (
-    <View style={styles.digitContainer}>
-      <Animated.View style={[styles.animatedDigit, animatedStyle]}>
-        {digits.map((digit, index) => (
-          <Text key={index} style={[styles.digit, { color }]}>
-            {digit}
-          </Text>
-        ))}
-      </Animated.View>
-    </View>
-  );
-};
+      const distance =
+        direction === "up"
+          ? (value + totalDigits - prevValue) % totalDigits
+          : (prevValue + totalDigits - value) % totalDigits;
+
+      const targetValue =
+        direction === "up"
+          ? initialPosition - distance * stepHeight
+          : initialPosition + distance * stepHeight;
+
+      // Animate digit position
+      translateY.value = withTiming(targetValue, { duration });
+
+      // Handle fade animations
+      if (fadeOut) {
+        opacity.value = withTiming(0, { duration });
+      }
+      if (fadeIn) {
+        opacity.value = withTiming(1, { duration });
+      }
+    }, [
+      direction,
+      duration,
+      fadeIn,
+      fadeOut,
+      opacity,
+      prevValue,
+      translateY,
+      value,
+    ]);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+      transform: [{ translateY: translateY.value }],
+      opacity: opacity.value,
+    }));
+
+    // Cache digits array
+    const digits = useMemo(
+      () => Array.from({ length: totalDigits * 3 }, (_, i) => i % totalDigits),
+      []
+    );
+
+    return (
+      <View style={styles.digitContainer}>
+        <Animated.View style={[styles.animatedDigit, animatedStyle]}>
+          {digits.map((digit, index) => (
+            <Text key={index} style={[styles.digit, { color }]}>
+              {digit}
+            </Text>
+          ))}
+        </Animated.View>
+      </View>
+    );
+  }
+);
+
+// Add display name for debugging
+Digit.displayName = "Digit";
 
 interface NumberFlowProps {
   value: number;
@@ -114,7 +120,6 @@ const NumberFlow: React.FC<NumberFlowProps> = ({
   const valueStr = String(value);
   const prevValueStr = String(prevValue);
 
-  // Split integer and decimal parts
   const [valueIntPart, valueDecPart = ""] = valueStr.split(".");
   const [prevValueIntPart, prevValueDecPart = ""] = prevValueStr.split(".");
 
@@ -182,35 +187,32 @@ const NumberFlow: React.FC<NumberFlowProps> = ({
   }));
 
   const renderDigit = (
+    key: string,
     digit: number,
     prevDigit: number,
-    isFadingOut: boolean,
-    key: string,
     index: number,
-    isDecimal: boolean
+    isDecimal: boolean // boolean 타입으로 정의
   ) => {
-    const isFadingIn =
-      // 정수 자리에서 fadeIn 조건
-      (!isDecimal &&
-        index < maxIntLength - prevValueIntPart.length &&
-        prevValueIntDigits[index] === 0) ||
-      // 소수 자리에서 fadeIn 조건
-      (isDecimal &&
-        index >= prevValueDecPart.length &&
-        prevValueDecDigits[index] === 0);
+    const isFadingIn = isDecimal
+      ? index >= prevValueDecDigits.length && prevValueDecDigits[index] === 0
+      : index < maxIntLength - prevValueIntPart.length &&
+        prevValueIntDigits[index] === 0;
+
+    const isFadingOut = isDecimal
+      ? index >= valueDecPart.length
+      : index < maxIntLength - valueIntPart.length;
 
     return (
-      <Animated.View key={key}>
-        <Digit
-          value={digit}
-          prevValue={prevDigit}
-          direction={direction}
-          duration={duration}
-          fadeOut={isFadingOut}
-          fadeIn={isFadingIn} // Pass fade-in flag
-          color={color}
-        />
-      </Animated.View>
+      <Digit
+        key={key}
+        value={digit}
+        prevValue={prevDigit}
+        direction={direction}
+        duration={duration}
+        fadeOut={isFadingOut}
+        fadeIn={isFadingIn}
+        color={color}
+      />
     );
   };
 
@@ -219,31 +221,29 @@ const NumberFlow: React.FC<NumberFlowProps> = ({
       {/* Integer Part */}
       {valueIntDigits.map((digit, index) =>
         renderDigit(
-          digit,
-          prevValueIntDigits[index] || 0,
-          index < maxIntLength - valueIntPart.length,
           `int-${index}`,
+          digit,
+          prevValueIntDigits[index],
           index,
-          false
+          false // isDecimal: boolean
         )
       )}
 
       {/* Decimal Point */}
       {valueDecPart.length > 0 && (
-        <Animated.View key="decimal">
-          <Text style={[styles.decimal, { color }]}>.</Text>
-        </Animated.View>
+        <Text key="decimal" style={[styles.decimal, { color }]}>
+          .
+        </Text>
       )}
 
       {/* Decimal Part */}
       {valueDecDigits.map((digit, index) =>
         renderDigit(
-          digit,
-          prevValueDecDigits[index] || 0,
-          index >= valueDecPart.length,
           `dec-${index}`,
+          digit,
+          prevValueDecDigits[index],
           index,
-          true
+          true // isDecimal: boolean
         )
       )}
     </Animated.View>
