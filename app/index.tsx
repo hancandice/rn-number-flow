@@ -27,7 +27,7 @@ const App: React.FC = () => {
     if (isAutoChanging) {
       interval = setInterval(() => {
         setValue(generateRandomValue());
-      }, 800); // Update every 800ms
+      }, 1000); // Update every 800ms
     }
 
     return () => {
@@ -63,7 +63,10 @@ const App: React.FC = () => {
           title="Random Large Change"
           onPress={() => setValue(generateRandomValue())}
         />
-        <Button title="Reset to 1234" onPress={() => setValue(1234)} />
+        <Button
+          title="Reset to 1234.00123"
+          onPress={() => setValue(1234.00123)}
+        />
       </View>
     </View>
   );

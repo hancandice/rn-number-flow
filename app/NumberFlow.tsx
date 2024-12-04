@@ -12,6 +12,7 @@ interface DigitProps {
   direction: "up" | "down";
   duration?: number;
   fadeOut?: boolean;
+  fadeIn?: boolean;
   color: string;
 }
 
@@ -21,6 +22,7 @@ const Digit: React.FC<DigitProps> = ({
   direction,
   duration = 1000,
   fadeOut = false,
+  fadeIn = false,
   color,
 }) => {
   const stepHeight = 40; // Each digit's height
@@ -29,8 +31,7 @@ const Digit: React.FC<DigitProps> = ({
   const opacity = useSharedValue(1);
 
   useEffect(() => {
-    // Reset opacity to 1 when the digit changes
-    opacity.value = 1;
+    opacity.value = fadeIn ? 0 : 1;
 
     const initialPosition = -(prevValue + totalDigits) * stepHeight;
     translateY.value = initialPosition;
@@ -45,17 +46,30 @@ const Digit: React.FC<DigitProps> = ({
         ? initialPosition - distance * stepHeight
         : initialPosition + distance * stepHeight;
 
+    // Animate digit position
     translateY.value = withTiming(targetValue, { duration });
 
-    // Fade out if required
+    // Handle fadeOut and fadeIn animations
     if (fadeOut) {
       opacity.value = withTiming(0, { duration });
     }
-  }, [direction, duration, fadeOut, opacity, prevValue, translateY, value]);
+    if (fadeIn) {
+      opacity.value = withTiming(1, { duration });
+    }
+  }, [
+    direction,
+    duration,
+    fadeIn,
+    fadeOut,
+    opacity,
+    prevValue,
+    translateY,
+    value,
+  ]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
-    opacity: fadeOut ? opacity.value : 1,
+    opacity: opacity.value,
   }));
 
   const digits = Array.from(
@@ -171,19 +185,34 @@ const NumberFlow: React.FC<NumberFlowProps> = ({
     digit: number,
     prevDigit: number,
     isFadingOut: boolean,
-    key: string
-  ) => (
-    <Animated.View key={key}>
-      <Digit
-        value={digit}
-        prevValue={prevDigit}
-        direction={direction}
-        duration={duration}
-        fadeOut={isFadingOut}
-        color={color}
-      />
-    </Animated.View>
-  );
+    key: string,
+    index: number,
+    isDecimal: boolean
+  ) => {
+    const isFadingIn =
+      // 정수 자리에서 fadeIn 조건
+      (!isDecimal &&
+        index < maxIntLength - prevValueIntPart.length &&
+        prevValueIntDigits[index] === 0) ||
+      // 소수 자리에서 fadeIn 조건
+      (isDecimal &&
+        index >= prevValueDecPart.length &&
+        prevValueDecDigits[index] === 0);
+
+    return (
+      <Animated.View key={key}>
+        <Digit
+          value={digit}
+          prevValue={prevDigit}
+          direction={direction}
+          duration={duration}
+          fadeOut={isFadingOut}
+          fadeIn={isFadingIn} // Pass fade-in flag
+          color={color}
+        />
+      </Animated.View>
+    );
+  };
 
   return (
     <Animated.View style={[styles.container, animatedStyle]}>
@@ -193,7 +222,9 @@ const NumberFlow: React.FC<NumberFlowProps> = ({
           digit,
           prevValueIntDigits[index] || 0,
           index < maxIntLength - valueIntPart.length,
-          `int-${index}`
+          `int-${index}`,
+          index,
+          false
         )
       )}
 
@@ -210,7 +241,9 @@ const NumberFlow: React.FC<NumberFlowProps> = ({
           digit,
           prevValueDecDigits[index] || 0,
           index >= valueDecPart.length,
-          `dec-${index}`
+          `dec-${index}`,
+          index,
+          true
         )
       )}
     </Animated.View>
