@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { memo, useEffect, useMemo, useRef } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -16,17 +16,17 @@ interface DigitProps {
   color: string;
 }
 
-const Digit: React.FC<DigitProps> = React.memo(
+const Digit: React.FC<DigitProps> = memo(
   ({
     value,
     prevValue,
     direction,
     duration = 1000,
-    fadeOut,
-    fadeIn,
+    fadeOut = false,
+    fadeIn = false,
     color,
   }) => {
-    const stepHeight = 40; // Digit height
+    const stepHeight = 40; // Each digit's height
     const totalDigits = 10; // 0-9
     const translateY = useSharedValue(0);
     const opacity = useSharedValue(1);
@@ -50,7 +50,7 @@ const Digit: React.FC<DigitProps> = React.memo(
       // Animate digit position
       translateY.value = withTiming(targetValue, { duration });
 
-      // Handle fade animations
+      // Handle fadeOut and fadeIn animations
       if (fadeOut) {
         opacity.value = withTiming(0, { duration });
       }
@@ -120,6 +120,7 @@ const NumberFlow: React.FC<NumberFlowProps> = ({
   const valueStr = String(value);
   const prevValueStr = String(prevValue);
 
+  // Split integer and decimal parts
   const [valueIntPart, valueDecPart = ""] = valueStr.split(".");
   const [prevValueIntPart, prevValueDecPart = ""] = prevValueStr.split(".");
 
@@ -191,10 +192,10 @@ const NumberFlow: React.FC<NumberFlowProps> = ({
     digit: number,
     prevDigit: number,
     index: number,
-    isDecimal: boolean // boolean 타입으로 정의
+    isDecimal: boolean
   ) => {
     const isFadingIn = isDecimal
-      ? index >= prevValueDecDigits.length && prevValueDecDigits[index] === 0
+      ? index >= prevValueDecPart.length && prevValueDecDigits[index] === 0
       : index < maxIntLength - prevValueIntPart.length &&
         prevValueIntDigits[index] === 0;
 
@@ -225,7 +226,7 @@ const NumberFlow: React.FC<NumberFlowProps> = ({
           digit,
           prevValueIntDigits[index],
           index,
-          false // isDecimal: boolean
+          false
         )
       )}
 
@@ -243,7 +244,7 @@ const NumberFlow: React.FC<NumberFlowProps> = ({
           digit,
           prevValueDecDigits[index],
           index,
-          true // isDecimal: boolean
+          true
         )
       )}
     </Animated.View>
