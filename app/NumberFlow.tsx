@@ -12,6 +12,7 @@ interface DigitProps {
   direction: "up" | "down";
   duration?: number;
   fadeOut?: boolean;
+  color: string;
 }
 
 const Digit: React.FC<DigitProps> = ({
@@ -20,6 +21,7 @@ const Digit: React.FC<DigitProps> = ({
   direction,
   duration = 1000,
   fadeOut = false,
+  color,
 }) => {
   const stepHeight = 40; // Each digit's height
   const totalDigits = 10; // 0-9
@@ -65,7 +67,7 @@ const Digit: React.FC<DigitProps> = ({
     <View style={styles.digitContainer}>
       <Animated.View style={[styles.animatedDigit, animatedStyle]}>
         {digits.map((digit, index) => (
-          <Text key={index} style={styles.digit}>
+          <Text key={index} style={[styles.digit, { color }]}>
             {digit}
           </Text>
         ))}
@@ -77,9 +79,14 @@ const Digit: React.FC<DigitProps> = ({
 interface NumberFlowProps {
   value: number;
   duration?: number;
+  color?: string;
 }
 
-const NumberFlow: React.FC<NumberFlowProps> = ({ value, duration = 1000 }) => {
+const NumberFlow: React.FC<NumberFlowProps> = ({
+  value,
+  duration = 1000,
+  color = "black",
+}) => {
   const prevValueRef = useRef(value);
   const prevValue = prevValueRef.current;
 
@@ -173,6 +180,7 @@ const NumberFlow: React.FC<NumberFlowProps> = ({ value, duration = 1000 }) => {
         direction={direction}
         duration={duration}
         fadeOut={isFadingOut}
+        color={color}
       />
     </Animated.View>
   );
@@ -192,7 +200,7 @@ const NumberFlow: React.FC<NumberFlowProps> = ({ value, duration = 1000 }) => {
       {/* Decimal Point */}
       {valueDecPart.length > 0 && (
         <Animated.View key="decimal">
-          <Text style={styles.decimal}>.</Text>
+          <Text style={[styles.decimal, { color }]}>.</Text>
         </Animated.View>
       )}
 
