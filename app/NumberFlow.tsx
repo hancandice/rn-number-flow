@@ -114,15 +114,47 @@ const NumberFlow: React.FC<NumberFlowProps> = ({ value, duration = 1000 }) => {
   const direction =
     parseFloat(valueStr) >= parseFloat(prevValueStr) ? "up" : "down";
 
-  // Calculate how much to move left (based on removed digits)
   useEffect(() => {
-    const removedDigitsCount = prevValueIntPart.length - valueIntPart.length;
-    if (removedDigitsCount > 0) {
-      translateX.value = withTiming(-removedDigitsCount * 40, { duration });
-    } else {
-      translateX.value = withTiming(0, { duration });
-    }
-  }, [valueIntPart, prevValueIntPart, translateX, duration]);
+    // Calculate disappearing digits on the left (integer part)
+    const disappearingLeftCount = valueIntDigits.reduce(
+      (count, _, index) =>
+        index < maxIntLength - valueIntPart.length ? count + 1 : count,
+      0
+    );
+
+    // Calculate disappearing digits on the right (decimal part)
+    const disappearingRightCount = valueDecDigits.reduce(
+      (count, _, index) => (index >= valueDecPart.length ? count + 1 : count),
+      0
+    );
+
+    // Check if the decimal point is disappearing
+    const isDecimalPointDisappearing =
+      prevValueDecPart.length > 0 && valueDecPart.length === 0;
+
+    // Log the disappearing counts for debugging
+    console.log({
+      disappearingLeftCount,
+      disappearingRightCount,
+      isDecimalPointDisappearing,
+    });
+
+    // Compute the offset based on disappearing digits
+    const offset =
+      -(disappearingLeftCount * 40) / 2 + (disappearingRightCount * 40) / 2;
+
+    // Animate translateX to adjust positioning
+    translateX.value = withTiming(offset, { duration });
+  }, [
+    duration,
+    maxIntLength,
+    prevValueDecPart.length,
+    translateX,
+    valueDecDigits,
+    valueDecPart.length,
+    valueIntDigits,
+    valueIntPart.length,
+  ]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
