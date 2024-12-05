@@ -42,7 +42,13 @@ const App: React.FC = () => {
       <Text style={styles.title}>🎰 Number Flow 🎰</Text>
       {/* Slot Machine Display */}
       <View style={styles.slotContainer}>
-        <NumberFlow value={value} duration={800} color="white" />
+        <NumberFlow
+          value={value}
+          duration={2000}
+          defaultColor="white"
+          increaseColor="#68DBBC"
+          decreaseColor="grey"
+        />
       </View>
 
       <View style={styles.buttonContainer}>

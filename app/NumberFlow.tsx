@@ -4,6 +4,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
+  interpolateColor,
 } from "react-native-reanimated";
 
 interface DigitProps {
@@ -13,7 +14,9 @@ interface DigitProps {
   duration?: number;
   fadeOut?: boolean;
   fadeIn?: boolean;
-  color: string;
+  increaseColor: string;
+  decreaseColor: string;
+  defaultColor: string;
 }
 
 const Digit: React.FC<DigitProps> = memo(
@@ -24,12 +27,15 @@ const Digit: React.FC<DigitProps> = memo(
     duration = 1000,
     fadeOut = false,
     fadeIn = false,
-    color,
+    increaseColor,
+    decreaseColor,
+    defaultColor,
   }) => {
     const stepHeight = 40; // Each digit's height
     const totalDigits = 10; // 0-9
     const translateY = useSharedValue(0);
     const opacity = useSharedValue(1);
+    const animationProgress = useSharedValue(0); // For color interpolation
 
     useEffect(() => {
       opacity.value = fadeIn ? 0 : 1;
@@ -57,7 +63,12 @@ const Digit: React.FC<DigitProps> = memo(
       if (fadeIn) {
         opacity.value = withTiming(1, { duration });
       }
+
+      // Start color animation based on direction
+      animationProgress.value = 0;
+      animationProgress.value = withTiming(1, { duration });
     }, [
+      animationProgress,
       direction,
       duration,
       fadeIn,
@@ -73,7 +84,15 @@ const Digit: React.FC<DigitProps> = memo(
       opacity: opacity.value,
     }));
 
-    // Cache digits array
+    const animatedTextStyle = useAnimatedStyle(() => {
+      const animatedColor = interpolateColor(
+        animationProgress.value,
+        [0, 1],
+        [direction === "up" ? increaseColor : decreaseColor, defaultColor]
+      );
+      return { color: animatedColor };
+    });
+
     const digits = useMemo(
       () => Array.from({ length: totalDigits * 3 }, (_, i) => i % totalDigits),
       []
@@ -83,9 +102,12 @@ const Digit: React.FC<DigitProps> = memo(
       <View style={styles.digitContainer}>
         <Animated.View style={[styles.animatedDigit, animatedStyle]}>
           {digits.map((digit, index) => (
-            <Text key={index} style={[styles.digit, { color }]}>
+            <Animated.Text
+              key={index}
+              style={[styles.digit, animatedTextStyle]}
+            >
               {digit}
-            </Text>
+            </Animated.Text>
           ))}
         </Animated.View>
       </View>
@@ -93,19 +115,21 @@ const Digit: React.FC<DigitProps> = memo(
   }
 );
 
-// Add display name for debugging
 Digit.displayName = "Digit";
-
 interface NumberFlowProps {
   value: number;
   duration?: number;
-  color?: string;
+  increaseColor?: string;
+  decreaseColor?: string;
+  defaultColor?: string;
 }
 
 const NumberFlow: React.FC<NumberFlowProps> = ({
   value,
   duration = 1000,
-  color = "black",
+  increaseColor = "red",
+  decreaseColor = "blue",
+  defaultColor = "black",
 }) => {
   const prevValueRef = useRef(value);
   const prevValue = prevValueRef.current;
@@ -212,7 +236,9 @@ const NumberFlow: React.FC<NumberFlowProps> = ({
         duration={duration}
         fadeOut={isFadingOut}
         fadeIn={isFadingIn}
-        color={color}
+        increaseColor={increaseColor}
+        decreaseColor={decreaseColor}
+        defaultColor={defaultColor}
       />
     );
   };
@@ -232,7 +258,7 @@ const NumberFlow: React.FC<NumberFlowProps> = ({
 
       {/* Decimal Point */}
       {valueDecPart.length > 0 && (
-        <Text key="decimal" style={[styles.decimal, { color }]}>
+        <Text key="decimal" style={[styles.decimal, { color: defaultColor }]}>
           .
         </Text>
       )}
