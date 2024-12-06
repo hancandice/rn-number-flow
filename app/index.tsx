@@ -1,37 +1,35 @@
 import React, { useEffect, useState } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import NumberFlow from "./NumberFlow"; // Import the NumberFlow component
 
 const App: React.FC = () => {
-  const [value, setValue] = useState<number>(1234); // Initial numeric value
+  const [value, setValue] = useState<number>(50000); // Initial BTC price
   const [isAutoChanging, setIsAutoChanging] = useState<boolean>(false); // Toggle for auto-change mode
 
-  // Function to generate random numbers
-  const generateRandomValue = (): number => {
-    const isLargeChange = Math.random() > 0.1; // 10% chance of large or small changes
-    if (isLargeChange) {
-      return Math.floor(Math.random() * 999999); // Large change
-    } else {
-      const randomIntPart = Math.floor(Math.random() * 1000);
-      const randomDecPart = Math.floor(Math.random() * 100) / 100;
-      return parseFloat((randomIntPart + randomDecPart).toFixed(2)); // Small change
-    }
+  // Function to generate random price changes
+  const generateRandomValue = (currentValue: number): number => {
+    const changePercentage = Math.random() * (10 - 5) + 5; // 5% to 10% change
+    const isIncrease = Math.random() > 0.5; // Randomly decide increase or decrease
+    const changeAmount = (currentValue * changePercentage) / 100;
+    return isIncrease
+      ? parseFloat((currentValue + changeAmount).toFixed(2))
+      : parseFloat((currentValue - changeAmount).toFixed(2));
   };
 
-  // Automatically update value every second if auto-changing is enabled
+  // Automatically update value every 3 seconds if auto-changing is enabled
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
 
     if (isAutoChanging) {
       interval = setInterval(() => {
-        setValue(generateRandomValue());
-      }, 2400); // Update every 2400ms
+        setValue((prevValue) => generateRandomValue(prevValue));
+      }, 3000); // Update every 3 seconds
     }
 
     return () => {
       if (interval) {
         clearInterval(interval);
-      } // Cleanup interval on unmount or when auto-change is disabled
+      }
     };
   }, [isAutoChanging]);
 
@@ -44,20 +42,8 @@ const App: React.FC = () => {
       case "stop":
         setIsAutoChanging(false);
         break;
-      case "max":
-        setValue(999999);
-        break;
-      case "min1":
-        setValue(0.01);
-        break;
-      case "min2":
-        setValue(0.02);
-        break;
-      case "random":
-        setValue(generateRandomValue());
-        break;
       case "reset":
-        setValue(1234.00123);
+        setValue(50000); // Reset to initial BTC price
         break;
       default:
         break;
@@ -66,7 +52,7 @@ const App: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🎰 Number Flow 🎰</Text>
+      <Text style={styles.title}>₿ Bitcoin Price Tracker</Text>
       {/* Slot Machine Display */}
       <View style={styles.slotContainer}>
         <NumberFlow
@@ -79,34 +65,24 @@ const App: React.FC = () => {
       </View>
 
       <View style={styles.buttonContainer}>
-        <Button
-          title="Start Auto Change"
+        <TouchableOpacity
+          style={styles.button}
           onPress={() => handleButtonPress("start")}
-        />
-        <Button
-          title="Stop Auto Change"
+        >
+          <Text style={styles.buttonText}>Start Auto Update</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
           onPress={() => handleButtonPress("stop")}
-        />
-        <Button
-          title="Increase to Max (999999)"
-          onPress={() => handleButtonPress("max")}
-        />
-        <Button
-          title="Decrease to Min (0.01)"
-          onPress={() => handleButtonPress("min1")}
-        />
-        <Button
-          title="Decrease to Min (0.02)"
-          onPress={() => handleButtonPress("min2")}
-        />
-        <Button
-          title="Random Large Change"
-          onPress={() => handleButtonPress("random")}
-        />
-        <Button
-          title="Reset to 1234.00123"
+        >
+          <Text style={styles.buttonText}>Stop Auto Update</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
           onPress={() => handleButtonPress("reset")}
-        />
+        >
+          <Text style={styles.buttonText}>Reset to $50,000</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -117,41 +93,47 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#000", // Dark background for the slot machine
+    backgroundColor: "#1a1a1a", // Dark background
     paddingHorizontal: 20,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "bold",
+    color: "#f2a900", // Bitcoin orange
     marginBottom: 20,
-    textAlign: "center",
-    color: "#f9ff42", // Neon yellow
-    textShadowColor: "#fff",
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
   },
   slotContainer: {
     marginVertical: 50,
-    height: 80,
-    flexDirection: "row",
+    padding: 30,
+    borderRadius: 10,
+    backgroundColor: "#292929",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#ff1493", // Pink neon
-    borderRadius: 15,
-    padding: 20,
-    backgroundColor: "#222", // Slot machine background
-    shadowColor: "#ff1493",
-    shadowOpacity: 0.8,
-    shadowRadius: 15,
+    shadowColor: "#f2a900",
+    shadowOpacity: 0.7,
+    shadowRadius: 20,
     shadowOffset: { width: 0, height: 0 },
     elevation: 10,
   },
   buttonContainer: {
+    width: "80%",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 20,
+  },
+  button: {
+    backgroundColor: "#f2a900", // Bitcoin orange
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginVertical: 10,
     width: "100%",
     alignItems: "center",
-    justifyContent: "space-evenly",
-    paddingVertical: 20,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#1a1a1a", // Dark text for contrast
   },
 });
 
