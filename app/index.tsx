@@ -23,7 +23,7 @@ const App: React.FC = () => {
     if (isAutoChanging) {
       interval = setInterval(() => {
         setValue((prevValue) => generateRandomValue(prevValue));
-      }, 1000); // Update every 3 seconds
+      }, 1200); // Update every 3 seconds
     }
 
     return () => {
@@ -57,10 +57,10 @@ const App: React.FC = () => {
       <View style={styles.slotContainer}>
         <NumberFlow
           value={value}
-          duration={800}
+          duration={1000}
           defaultColor="white"
-          increaseColor="#68DBBC"
-          decreaseColor="grey"
+          increaseColor="red"
+          decreaseColor="blue"
         />
       </View>
 

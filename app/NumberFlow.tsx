@@ -17,9 +17,9 @@ interface NumberFlowProps {
 const NumberFlow: React.FC<NumberFlowProps> = ({
   value,
   duration = 1000,
-  increaseColor = "red",
-  decreaseColor = "blue",
-  defaultColor = "black",
+  defaultColor = "white",
+  increaseColor = "#68DBBC",
+  decreaseColor = "grey",
 }) => {
   const prevValueRef = useRef(value);
   const prevValue = prevValueRef.current;
@@ -101,7 +101,7 @@ const NumberFlow: React.FC<NumberFlowProps> = ({
     transform: [{ translateX: translateX.value }],
   }));
 
-  let shouldAnimate = valueIntPart.length !== prevValueIntPart.length;
+  let shouldChangeColor = valueIntPart.length !== prevValueIntPart.length;
 
   const renderDigit = (
     key: string,
@@ -120,8 +120,8 @@ const NumberFlow: React.FC<NumberFlowProps> = ({
       : index < maxIntLength - valueIntPart.length;
 
     // Once a difference is detected, animate all subsequent digits (including decimals)
-    if (!shouldAnimate && prevDigit !== digit) {
-      shouldAnimate = true;
+    if (!shouldChangeColor && prevDigit !== digit) {
+      shouldChangeColor = true;
     }
 
     return (
@@ -130,7 +130,7 @@ const NumberFlow: React.FC<NumberFlowProps> = ({
         value={digit}
         prevValue={prevDigit}
         direction={direction}
-        animated={shouldAnimate}
+        shouldChangeColor={shouldChangeColor}
         duration={duration}
         fadeOut={isFadingOut}
         fadeIn={isFadingIn}

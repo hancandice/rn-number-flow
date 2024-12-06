@@ -1,7 +1,8 @@
-import React, { memo, useEffect, useMemo } from "react";
+import React, { memo } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
   interpolateColor,
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -11,7 +12,7 @@ interface DigitProps {
   value: number;
   prevValue: number;
   direction: "up" | "down";
-  animated: boolean;
+  shouldChangeColor: boolean;
   duration?: number;
   fadeOut?: boolean;
   fadeIn?: boolean;
@@ -20,12 +21,19 @@ interface DigitProps {
   defaultColor: string;
 }
 
+const TOTAL_DIGITS = 10; // 0-9
+
+const DIGITS = Array.from(
+  { length: TOTAL_DIGITS * 3 },
+  (_, i) => i % TOTAL_DIGITS
+);
+
 const Digit: React.FC<DigitProps> = memo(
   ({
     value,
     prevValue,
     direction,
-    animated,
+    shouldChangeColor,
     duration = 1000,
     fadeOut = false,
     fadeIn = false,
@@ -34,56 +42,46 @@ const Digit: React.FC<DigitProps> = memo(
     defaultColor,
   }) => {
     const stepHeight = 40; // Each digit's height
-    const totalDigits = 10; // 0-9
-    const translateY = useSharedValue(0);
+
+    const initialPosition = -(prevValue + TOTAL_DIGITS) * stepHeight;
+
+    const translateY = useSharedValue(initialPosition);
     const opacity = useSharedValue(fadeIn ? 0 : 1);
-    const animationProgress = useSharedValue(0); // For color interpolation
+    const colorProgress = useSharedValue(0);
 
-    useEffect(() => {
-      opacity.value = fadeIn ? 0 : 1;
+    useAnimatedReaction(
+      () => ({}),
+      () => {
+        translateY.value = initialPosition;
+        opacity.value = fadeIn ? 0 : 1;
+        colorProgress.value = 0;
 
-      const initialPosition = -(prevValue + totalDigits) * stepHeight;
-      translateY.value = initialPosition;
+        const distance =
+          direction === "up"
+            ? (value + TOTAL_DIGITS - prevValue) % TOTAL_DIGITS
+            : (prevValue + TOTAL_DIGITS - value) % TOTAL_DIGITS;
 
-      const distance =
-        direction === "up"
-          ? (value + totalDigits - prevValue) % totalDigits
-          : (prevValue + totalDigits - value) % totalDigits;
+        const targetValue =
+          direction === "up"
+            ? initialPosition - distance * stepHeight
+            : initialPosition + distance * stepHeight;
 
-      const targetValue =
-        direction === "up"
-          ? initialPosition - distance * stepHeight
-          : initialPosition + distance * stepHeight;
+        // Animate digit position
+        translateY.value = withTiming(targetValue, { duration });
 
-      // Animate digit position
-      translateY.value = withTiming(targetValue, { duration });
+        // Handle fadeOut and fadeIn animations
+        if (fadeIn) {
+          opacity.value = withTiming(1, { duration });
+        } else if (fadeOut) {
+          opacity.value = withTiming(0, { duration });
+        }
 
-      // Handle fadeOut and fadeIn animations
-      if (fadeOut) {
-        opacity.value = withTiming(0, { duration });
+        // Start color animation based on direction
+        colorProgress.value = shouldChangeColor
+          ? withTiming(1, { duration })
+          : 1;
       }
-      if (fadeIn) {
-        opacity.value = withTiming(1, { duration });
-      }
-
-      // Start color animation based on direction
-      animationProgress.value = 0;
-      if (!animated) {
-        animationProgress.value = 1;
-      }
-      animationProgress.value = withTiming(1, { duration });
-    }, [
-      animated,
-      animationProgress,
-      direction,
-      duration,
-      fadeIn,
-      fadeOut,
-      opacity,
-      prevValue,
-      translateY,
-      value,
-    ]);
+    );
 
     const animatedStyle = useAnimatedStyle(() => ({
       transform: [{ translateY: translateY.value }],
@@ -92,22 +90,17 @@ const Digit: React.FC<DigitProps> = memo(
 
     const animatedTextStyle = useAnimatedStyle(() => {
       const animatedColor = interpolateColor(
-        animationProgress.value,
+        colorProgress.value,
         [0, 1],
         [direction === "up" ? increaseColor : decreaseColor, defaultColor]
       );
       return { color: animatedColor };
     });
 
-    const digits = useMemo(
-      () => Array.from({ length: totalDigits * 3 }, (_, i) => i % totalDigits),
-      []
-    );
-
     return (
       <View style={styles.digitContainer}>
         <Animated.View style={[styles.animatedDigit, animatedStyle]}>
-          {digits.map((digit, index) => (
+          {DIGITS.map((digit, index) => (
             <Animated.Text
               key={index}
               style={[styles.digit, animatedTextStyle]}
