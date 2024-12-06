@@ -1,11 +1,12 @@
 import React, { memo, useEffect, useRef } from "react";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import DecimalPoint from "./components/DecimalPoint";
 import Digit from "./components/Digit";
 interface NumberFlowProps {
   value: number;
@@ -139,9 +140,16 @@ const NumberFlow: React.FC<NumberFlowProps> = memo(
 
         {/* Decimal Point */}
         {valueDecPart.length > 0 && (
-          <Text key="decimal" style={[styles.decimal, { color: defaultColor }]}>
-            .
-          </Text>
+          <DecimalPoint
+            direction={direction}
+            shouldChangeColor={shouldChangeColor}
+            duration={duration}
+            fadeOut={prevValueDecPart.length > 0 && valueDecPart.length === 0}
+            fadeIn={prevValueDecPart.length === 0 && valueDecPart.length > 0}
+            increaseColor={increaseColor}
+            decreaseColor={decreaseColor}
+            defaultColor={defaultColor}
+          />
         )}
 
         {/* Decimal Part */}
