@@ -1,8 +1,7 @@
-import React, { memo } from "react";
+import React, { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
   interpolateColor,
-  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -28,93 +27,81 @@ const DIGITS = Array.from(
   (_, i) => i % TOTAL_DIGITS
 );
 
-const Digit: React.FC<DigitProps> = memo(
-  ({
-    value,
-    prevValue,
-    direction,
-    shouldChangeColor,
-    duration = 1000,
-    fadeOut = false,
-    fadeIn = false,
-    increaseColor,
-    decreaseColor,
-    defaultColor,
-  }) => {
-    const stepHeight = 40; // Each digit's height
+const Digit: React.FC<DigitProps> = ({
+  value,
+  prevValue,
+  direction,
+  shouldChangeColor,
+  duration = 1000,
+  fadeOut = false,
+  fadeIn = false,
+  increaseColor,
+  decreaseColor,
+  defaultColor,
+}) => {
+  const stepHeight = 40; // Each digit's height
 
-    const initialPosition = -(prevValue + TOTAL_DIGITS) * stepHeight;
+  const initialPosition = -(prevValue + TOTAL_DIGITS) * stepHeight;
 
-    const translateY = useSharedValue(initialPosition);
-    const opacity = useSharedValue(fadeIn ? 0 : 1);
-    const colorProgress = useSharedValue(0);
+  const translateY = useSharedValue(initialPosition);
+  const opacity = useSharedValue(fadeIn ? 0 : 1);
+  const colorProgress = useSharedValue(0);
 
-    useAnimatedReaction(
-      () => ({}),
-      () => {
-        translateY.value = initialPosition;
-        opacity.value = fadeIn ? 0 : 1;
-        colorProgress.value = 0;
+  useEffect(() => {
+    translateY.value = initialPosition;
+    opacity.value = fadeIn ? 0 : 1;
+    colorProgress.value = 0;
 
-        const distance =
-          direction === "up"
-            ? (value + TOTAL_DIGITS - prevValue) % TOTAL_DIGITS
-            : (prevValue + TOTAL_DIGITS - value) % TOTAL_DIGITS;
+    const distance =
+      direction === "up"
+        ? (value + TOTAL_DIGITS - prevValue) % TOTAL_DIGITS
+        : (prevValue + TOTAL_DIGITS - value) % TOTAL_DIGITS;
 
-        const targetValue =
-          direction === "up"
-            ? initialPosition - distance * stepHeight
-            : initialPosition + distance * stepHeight;
+    const targetValue =
+      direction === "up"
+        ? initialPosition - distance * stepHeight
+        : initialPosition + distance * stepHeight;
 
-        // Animate digit position
-        translateY.value = withTiming(targetValue, { duration });
+    // Animate digit position
+    translateY.value = withTiming(targetValue, { duration });
 
-        // Handle fadeOut and fadeIn animations
-        if (fadeIn) {
-          opacity.value = withTiming(1, { duration });
-        } else if (fadeOut) {
-          opacity.value = withTiming(0, { duration });
-        }
+    // Handle fadeOut and fadeIn animations
+    if (fadeIn) {
+      opacity.value = withTiming(1, { duration });
+    } else if (fadeOut) {
+      opacity.value = withTiming(0, { duration });
+    }
 
-        // Start color animation based on direction
-        colorProgress.value = shouldChangeColor
-          ? withTiming(1, { duration })
-          : 1;
-      }
+    // Start color animation based on direction
+    colorProgress.value = shouldChangeColor ? withTiming(1, { duration }) : 1;
+  });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+    opacity: opacity.value,
+  }));
+
+  const animatedTextStyle = useAnimatedStyle(() => {
+    const animatedColor = interpolateColor(
+      colorProgress.value,
+      [0, 1],
+      [direction === "up" ? increaseColor : decreaseColor, defaultColor]
     );
+    return { color: animatedColor };
+  });
 
-    const animatedStyle = useAnimatedStyle(() => ({
-      transform: [{ translateY: translateY.value }],
-      opacity: opacity.value,
-    }));
-
-    const animatedTextStyle = useAnimatedStyle(() => {
-      const animatedColor = interpolateColor(
-        colorProgress.value,
-        [0, 1],
-        [direction === "up" ? increaseColor : decreaseColor, defaultColor]
-      );
-      return { color: animatedColor };
-    });
-
-    return (
-      <View style={styles.digitContainer}>
-        <Animated.View style={[styles.animatedDigit, animatedStyle]}>
-          {DIGITS.map((digit, index) => (
-            <Animated.Text
-              key={index}
-              style={[styles.digit, animatedTextStyle]}
-            >
-              {digit}
-            </Animated.Text>
-          ))}
-        </Animated.View>
-      </View>
-    );
-  }
-);
-
-Digit.displayName = "Digit";
+  return (
+    <View style={styles.digitContainer}>
+      <Animated.View style={[styles.animatedDigit, animatedStyle]}>
+        {DIGITS.map((digit, index) => (
+          <Animated.Text key={index} style={[styles.digit, animatedTextStyle]}>
+            {digit}
+          </Animated.Text>
+        ))}
+      </Animated.View>
+    </View>
+  );
+};
 
 export default Digit;
 

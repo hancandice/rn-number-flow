@@ -23,7 +23,7 @@ const App: React.FC = () => {
     if (isAutoChanging) {
       interval = setInterval(() => {
         setValue((prevValue) => generateRandomValue(prevValue));
-      }, 1200); // Update every 3 seconds
+      }, 2000); // Update every 3 seconds
     }
 
     return () => {
@@ -57,7 +57,7 @@ const App: React.FC = () => {
       <View style={styles.slotContainer}>
         <NumberFlow
           value={value}
-          duration={1000}
+          duration={1500}
           defaultColor="white"
           increaseColor="red"
           decreaseColor="blue"
@@ -82,6 +82,34 @@ const App: React.FC = () => {
           onPress={() => handleButtonPress("reset")}
         >
           <Text style={styles.buttonText}>Reset to $50,000</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setValue(55458.57)}
+        >
+          <Text style={styles.buttonText}>Reset to $55458.57</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setValue(52306.57)}
+        >
+          <Text style={styles.buttonText}>Reset to $52306.57</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setValue(56492.57)}
+        >
+          <Text style={styles.buttonText}>Reset to $56492.57</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setValue(60299.57)}
+        >
+          <Text style={styles.buttonText}>Reset to $60299.57</Text>
         </TouchableOpacity>
       </View>
     </View>
