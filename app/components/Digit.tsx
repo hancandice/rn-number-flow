@@ -47,32 +47,29 @@ const Digit: React.FC<DigitProps> = ({
   const opacity = useSharedValue(fadeIn ? 0 : 1);
   const colorProgress = useSharedValue(0);
 
+  const distance =
+    direction === "up"
+      ? (value + TOTAL_DIGITS - prevValue) % TOTAL_DIGITS
+      : (prevValue + TOTAL_DIGITS - value) % TOTAL_DIGITS;
+
+  const targetValue =
+    direction === "up"
+      ? initialPosition - distance * stepHeight
+      : initialPosition + distance * stepHeight;
+
   useEffect(() => {
     translateY.value = initialPosition;
     opacity.value = fadeIn ? 0 : 1;
     colorProgress.value = 0;
 
-    const distance =
-      direction === "up"
-        ? (value + TOTAL_DIGITS - prevValue) % TOTAL_DIGITS
-        : (prevValue + TOTAL_DIGITS - value) % TOTAL_DIGITS;
-
-    const targetValue =
-      direction === "up"
-        ? initialPosition - distance * stepHeight
-        : initialPosition + distance * stepHeight;
-
-    // Animate digit position
     translateY.value = withTiming(targetValue, { duration });
 
-    // Handle fadeOut and fadeIn animations
     if (fadeIn) {
       opacity.value = withTiming(1, { duration });
     } else if (fadeOut) {
       opacity.value = withTiming(0, { duration });
     }
 
-    // Start color animation based on direction
     colorProgress.value = shouldChangeColor ? withTiming(1, { duration }) : 1;
   });
 

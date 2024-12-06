@@ -55,13 +55,7 @@ const App: React.FC = () => {
       <Text style={styles.title}>₿ Bitcoin Price Tracker</Text>
       {/* Slot Machine Display */}
       <View style={styles.slotContainer}>
-        <NumberFlow
-          value={value}
-          duration={1500}
-          defaultColor="white"
-          increaseColor="red"
-          decreaseColor="blue"
-        />
+        <NumberFlow value={value} duration={1500} />
       </View>
 
       <View style={styles.buttonContainer}>

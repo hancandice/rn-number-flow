@@ -2,6 +2,7 @@ import React, { memo, useEffect, useRef } from "react";
 import { StyleSheet, Text } from "react-native";
 import Animated, {
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
@@ -23,19 +24,14 @@ const NumberFlow: React.FC<NumberFlowProps> = memo(
     decreaseColor = "grey",
   }) => {
     const prevValueRef = useRef(value);
-    const prevValue = prevValueRef.current;
-
-    // Track `translateX` for left movement
-    const translateX = useSharedValue(0);
 
     useEffect(() => {
       prevValueRef.current = value;
     }, [value]);
 
     const valueStr = String(value);
-    const prevValueStr = String(prevValue);
+    const prevValueStr = String(prevValueRef.current);
 
-    // Split integer and decimal parts
     const [valueIntPart, valueDecPart = ""] = valueStr.split(".");
     const [prevValueIntPart, prevValueDecPart = ""] = prevValueStr.split(".");
 
@@ -56,47 +52,33 @@ const NumberFlow: React.FC<NumberFlowProps> = memo(
     const direction =
       parseFloat(valueStr) >= parseFloat(prevValueStr) ? "up" : "down";
 
-    useEffect(() => {
-      // Calculate disappearing digits on the left (integer part)
-      const disappearingLeftCount = valueIntDigits.reduce(
-        (count, _, index) =>
-          index < maxIntLength - valueIntPart.length ? count + 1 : count,
-        0
-      );
+    const translateX = useSharedValue(0);
 
-      // Calculate disappearing digits on the right (decimal part)
-      const disappearingRightCount = valueDecDigits.reduce(
-        (count, _, index) => (index >= valueDecPart.length ? count + 1 : count),
-        0
-      );
+    // Calculate disappearing digits on the left (integer part)
+    const disappearingLeftCount = valueIntDigits.reduce(
+      (count, _, index) =>
+        index < maxIntLength - valueIntPart.length ? count + 1 : count,
+      0
+    );
 
-      // Check if the decimal point is disappearing
-      const isDecimalPointDisappearing =
-        prevValueDecPart.length > 0 && valueDecPart.length === 0;
+    // Calculate disappearing digits on the right (decimal part)
+    const disappearingRightCount = valueDecDigits.reduce(
+      (count, _, index) => (index >= valueDecPart.length ? count + 1 : count),
+      0
+    );
 
-      // Log the disappearing counts for debugging
-      console.log({
-        disappearingLeftCount,
-        disappearingRightCount,
-        isDecimalPointDisappearing,
-      });
+    // Check if the decimal point is disappearing
 
-      // Compute the offset based on disappearing digits
-      const offset =
-        -(disappearingLeftCount * 40) / 2 + (disappearingRightCount * 40) / 2;
+    // const isDecimalPointDisappearing =
+    //   prevValueDecPart.length > 0 && valueDecPart.length === 0;
 
-      // Animate translateX to adjust positioning
+    // Compute the offset based on disappearing digits
+    const offset =
+      -(disappearingLeftCount * 40) / 2 + (disappearingRightCount * 40) / 2;
+
+    useDerivedValue(() => {
       translateX.value = withTiming(offset, { duration });
-    }, [
-      duration,
-      maxIntLength,
-      prevValueDecPart.length,
-      translateX,
-      valueDecDigits,
-      valueDecPart.length,
-      valueIntDigits,
-      valueIntPart.length,
-    ]);
+    });
 
     const animatedStyle = useAnimatedStyle(() => ({
       transform: [{ translateX: translateX.value }],
@@ -186,10 +168,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   decimal: {
-    fontSize: 30,
+    fontSize: 40,
     height: 40,
     textAlign: "center",
-    lineHeight: 40,
   },
 });
 
