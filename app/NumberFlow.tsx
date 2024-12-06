@@ -36,7 +36,7 @@ const Digit: React.FC<DigitProps> = memo(
     const stepHeight = 40; // Each digit's height
     const totalDigits = 10; // 0-9
     const translateY = useSharedValue(0);
-    const opacity = useSharedValue(1);
+    const opacity = useSharedValue(fadeIn ? 0 : 1);
     const animationProgress = useSharedValue(0); // For color interpolation
 
     useEffect(() => {
