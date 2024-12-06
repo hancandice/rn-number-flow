@@ -3,20 +3,18 @@ import { Button, StyleSheet, Text, View } from "react-native";
 import NumberFlow from "./NumberFlow"; // Import the NumberFlow component
 
 const App: React.FC = () => {
-  const [value, setValue] = useState(1234); // Initial numeric value
-  const [isAutoChanging, setIsAutoChanging] = useState(false); // Toggle for auto-change mode
+  const [value, setValue] = useState<number>(1234); // Initial numeric value
+  const [isAutoChanging, setIsAutoChanging] = useState<boolean>(false); // Toggle for auto-change mode
 
-  // Function to generate random numbers for testing with more dynamic ranges
-  const generateRandomValue = () => {
-    const isLargeChange = Math.random() > 0.5; // 50% chance of large or small changes
+  // Function to generate random numbers
+  const generateRandomValue = (): number => {
+    const isLargeChange = Math.random() > 0.1; // 10% chance of large or small changes
     if (isLargeChange) {
-      // Large change: Randomize from 1 to 999999
-      return Math.floor(Math.random() * 999999);
+      return Math.floor(Math.random() * 999999); // Large change
     } else {
-      // Small change: Randomize from 0.01 to 999.99
       const randomIntPart = Math.floor(Math.random() * 1000);
       const randomDecPart = Math.floor(Math.random() * 100) / 100;
-      return parseFloat((randomIntPart + randomDecPart).toFixed(2));
+      return parseFloat((randomIntPart + randomDecPart).toFixed(2)); // Small change
     }
   };
 
@@ -27,7 +25,7 @@ const App: React.FC = () => {
     if (isAutoChanging) {
       interval = setInterval(() => {
         setValue(generateRandomValue());
-      }, 1000); // Update every 800ms
+      }, 2400); // Update every 2400ms
     }
 
     return () => {
@@ -36,6 +34,35 @@ const App: React.FC = () => {
       } // Cleanup interval on unmount or when auto-change is disabled
     };
   }, [isAutoChanging]);
+
+  // Handler for button presses
+  const handleButtonPress = (action: string) => {
+    switch (action) {
+      case "start":
+        setIsAutoChanging(true);
+        break;
+      case "stop":
+        setIsAutoChanging(false);
+        break;
+      case "max":
+        setValue(999999);
+        break;
+      case "min1":
+        setValue(0.01);
+        break;
+      case "min2":
+        setValue(0.02);
+        break;
+      case "random":
+        setValue(generateRandomValue());
+        break;
+      case "reset":
+        setValue(1234.00123);
+        break;
+      default:
+        break;
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -54,24 +81,31 @@ const App: React.FC = () => {
       <View style={styles.buttonContainer}>
         <Button
           title="Start Auto Change"
-          onPress={() => setIsAutoChanging(true)}
+          onPress={() => handleButtonPress("start")}
         />
         <Button
           title="Stop Auto Change"
-          onPress={() => setIsAutoChanging(false)}
+          onPress={() => handleButtonPress("stop")}
         />
         <Button
           title="Increase to Max (999999)"
-          onPress={() => setValue(999999)}
+          onPress={() => handleButtonPress("max")}
         />
-        <Button title="Decrease to Min (0.01)" onPress={() => setValue(0.01)} />
+        <Button
+          title="Decrease to Min (0.01)"
+          onPress={() => handleButtonPress("min1")}
+        />
+        <Button
+          title="Decrease to Min (0.02)"
+          onPress={() => handleButtonPress("min2")}
+        />
         <Button
           title="Random Large Change"
-          onPress={() => setValue(generateRandomValue())}
+          onPress={() => handleButtonPress("random")}
         />
         <Button
           title="Reset to 1234.00123"
-          onPress={() => setValue(1234.00123)}
+          onPress={() => handleButtonPress("reset")}
         />
       </View>
     </View>
@@ -83,7 +117,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#000", // 슬롯머신의 어두운 배경
+    backgroundColor: "#000", // Dark background for the slot machine
     paddingHorizontal: 20,
   },
   title: {
@@ -91,7 +125,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
-    color: "#f9ff42", // 네온 노란색
+    color: "#f9ff42", // Neon yellow
     textShadowColor: "#fff",
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
@@ -103,10 +137,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
-    borderColor: "#ff1493", // 핑크 네온
+    borderColor: "#ff1493", // Pink neon
     borderRadius: 15,
     padding: 20,
-    backgroundColor: "#222", // 슬롯머신 내부 배경
+    backgroundColor: "#222", // Slot machine background
     shadowColor: "#ff1493",
     shadowOpacity: 0.8,
     shadowRadius: 15,
@@ -118,23 +152,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-evenly",
     paddingVertical: 20,
-  },
-  button: {
-    backgroundColor: "#444", // 버튼의 어두운 색상
-    borderRadius: 8,
-    padding: 10,
-    marginVertical: 5,
-    borderWidth: 2,
-    borderColor: "#ff1493",
-    shadowColor: "#ff1493",
-    shadowOpacity: 0.6,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 0 },
-  },
-  buttonText: {
-    fontSize: 18,
-    color: "#fff",
-    textAlign: "center",
   },
 });
 

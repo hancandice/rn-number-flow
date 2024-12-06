@@ -1,16 +1,17 @@
 import React, { memo, useEffect, useMemo, useRef } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, {
+  interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-  interpolateColor,
 } from "react-native-reanimated";
 
 interface DigitProps {
   value: number;
   prevValue: number;
   direction: "up" | "down";
+  animated: boolean;
   duration?: number;
   fadeOut?: boolean;
   fadeIn?: boolean;
@@ -24,6 +25,7 @@ const Digit: React.FC<DigitProps> = memo(
     value,
     prevValue,
     direction,
+    animated,
     duration = 1000,
     fadeOut = false,
     fadeIn = false,
@@ -66,8 +68,12 @@ const Digit: React.FC<DigitProps> = memo(
 
       // Start color animation based on direction
       animationProgress.value = 0;
+      if (!animated) {
+        animationProgress.value = 1;
+      }
       animationProgress.value = withTiming(1, { duration });
     }, [
+      animated,
       animationProgress,
       direction,
       duration,
@@ -211,6 +217,8 @@ const NumberFlow: React.FC<NumberFlowProps> = ({
     transform: [{ translateX: translateX.value }],
   }));
 
+  let shouldAnimate = valueIntPart.length !== prevValueIntPart.length;
+
   const renderDigit = (
     key: string,
     digit: number,
@@ -227,12 +235,18 @@ const NumberFlow: React.FC<NumberFlowProps> = ({
       ? index >= valueDecPart.length
       : index < maxIntLength - valueIntPart.length;
 
+    // Once a difference is detected, animate all subsequent digits (including decimals)
+    if (!shouldAnimate && prevDigit !== digit) {
+      shouldAnimate = true;
+    }
+
     return (
       <Digit
         key={key}
         value={digit}
         prevValue={prevDigit}
         direction={direction}
+        animated={shouldAnimate}
         duration={duration}
         fadeOut={isFadingOut}
         fadeIn={isFadingIn}
