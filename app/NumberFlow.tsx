@@ -9,7 +9,7 @@ import Animated, {
 import DecimalPoint from "./components/DecimalPoint";
 import Digit from "./components/Digit";
 interface NumberFlowProps {
-  value: number;
+  value: number | string;
   duration?: number;
   increaseColor?: string;
   decreaseColor?: string;

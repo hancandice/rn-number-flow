@@ -3,17 +3,19 @@ import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import NumberFlow from "./NumberFlow"; // Import the NumberFlow component
 
 const App: React.FC = () => {
-  const [value, setValue] = useState<number>(50000); // Initial BTC price
+  const [value, setValue] = useState<string>("50000"); // Initial BTC price as a string
   const [isAutoChanging, setIsAutoChanging] = useState<boolean>(false); // Toggle for auto-change mode
 
   // Function to generate random price changes
-  const generateRandomValue = (currentValue: number): number => {
+  const generateRandomValue = (currentValue: string): string => {
+    const currentNumber = parseFloat(currentValue);
     const changePercentage = Math.random() * (10 - 5) + 5; // 5% to 10% change
     const isIncrease = Math.random() > 0.5; // Randomly decide increase or decrease
-    const changeAmount = (currentValue * changePercentage) / 100;
-    return isIncrease
-      ? parseFloat((currentValue + changeAmount).toFixed(2))
-      : parseFloat((currentValue - changeAmount).toFixed(2));
+    const changeAmount = (currentNumber * changePercentage) / 100;
+    const newValue = isIncrease
+      ? currentNumber + changeAmount
+      : currentNumber - changeAmount;
+    return newValue.toFixed(2); // Return as a string with 2 decimal places
   };
 
   // Automatically update value every 3 seconds if auto-changing is enabled
@@ -43,7 +45,7 @@ const App: React.FC = () => {
         setIsAutoChanging(false);
         break;
       case "reset":
-        setValue(50000); // Reset to initial BTC price
+        setValue("50000"); // Reset to initial BTC price as a string
         break;
       default:
         break;
@@ -80,28 +82,28 @@ const App: React.FC = () => {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => setValue(55458.57)}
+          onPress={() => setValue("55458.57")}
         >
           <Text style={styles.buttonText}>Reset to $55458.57</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => setValue(52306.57)}
+          onPress={() => setValue("52306.57")}
         >
           <Text style={styles.buttonText}>Reset to $52306.57</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => setValue(56492.57)}
+          onPress={() => setValue("56492.57")}
         >
           <Text style={styles.buttonText}>Reset to $56492.57</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => setValue(60299.57)}
+          onPress={() => setValue("60299.57")}
         >
           <Text style={styles.buttonText}>Reset to $60299.57</Text>
         </TouchableOpacity>
