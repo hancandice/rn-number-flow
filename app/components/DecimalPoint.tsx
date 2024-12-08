@@ -7,7 +7,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-interface DigitProps {
+interface DecimalPointProps {
   direction: "up" | "down";
   shouldChangeColor: boolean;
   duration?: number;
@@ -18,7 +18,7 @@ interface DigitProps {
   defaultColor: string;
 }
 
-const DecimalPoint: React.FC<DigitProps> = ({
+const DecimalPoint: React.FC<DecimalPointProps> = ({
   direction,
   shouldChangeColor,
   duration = 1000,

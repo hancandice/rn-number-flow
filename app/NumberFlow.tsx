@@ -16,6 +16,8 @@ interface NumberFlowProps {
   defaultColor?: string;
 }
 
+const DIGIT_WIDTH = 20;
+
 const NumberFlow: React.FC<NumberFlowProps> = memo(
   ({
     value,
@@ -75,7 +77,8 @@ const NumberFlow: React.FC<NumberFlowProps> = memo(
 
     // Compute the offset based on disappearing digits
     const offset =
-      -(disappearingLeftCount * 40) / 2 + (disappearingRightCount * 40) / 2;
+      -(disappearingLeftCount * DIGIT_WIDTH) / 2 +
+      (disappearingRightCount * DIGIT_WIDTH) / 2;
 
     useDerivedValue(() => {
       translateX.value = withTiming(offset, { duration });

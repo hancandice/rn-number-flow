@@ -7,9 +7,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-interface DigitProps {
-  value: number;
-  prevValue: number;
+interface ThousandsSeparatorProps {
   direction: "up" | "down";
   shouldChangeColor: boolean;
   duration?: number;
@@ -20,16 +18,7 @@ interface DigitProps {
   defaultColor: string;
 }
 
-const TOTAL_DIGITS = 10; // 0-9
-
-const DIGITS = Array.from(
-  { length: TOTAL_DIGITS * 3 },
-  (_, i) => i % TOTAL_DIGITS
-);
-
-const Digit: React.FC<DigitProps> = ({
-  value,
-  prevValue,
+const ThousandsSeparator: React.FC<ThousandsSeparatorProps> = ({
   direction,
   shouldChangeColor,
   duration = 1000,
@@ -39,30 +28,12 @@ const Digit: React.FC<DigitProps> = ({
   decreaseColor,
   defaultColor,
 }) => {
-  const stepHeight = 40; // Each digit's height
-
-  const initialPosition = -(prevValue + TOTAL_DIGITS) * stepHeight;
-
-  const translateY = useSharedValue(initialPosition);
   const opacity = useSharedValue(fadeIn ? 0 : 1);
   const colorProgress = useSharedValue(0);
 
-  const distance =
-    direction === "up"
-      ? (value + TOTAL_DIGITS - prevValue) % TOTAL_DIGITS
-      : (prevValue + TOTAL_DIGITS - value) % TOTAL_DIGITS;
-
-  const targetValue =
-    direction === "up"
-      ? initialPosition - distance * stepHeight
-      : initialPosition + distance * stepHeight;
-
   useEffect(() => {
-    translateY.value = initialPosition;
     opacity.value = fadeIn ? 0 : 1;
     colorProgress.value = 0;
-
-    translateY.value = withTiming(targetValue, { duration });
 
     if (fadeIn) {
       opacity.value = withTiming(1, { duration });
@@ -74,7 +45,6 @@ const Digit: React.FC<DigitProps> = ({
   });
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
     opacity: opacity.value,
   }));
 
@@ -87,42 +57,22 @@ const Digit: React.FC<DigitProps> = ({
     return { color: animatedColor };
   });
 
-  if (isNaN(Number(prevValue)) || isNaN(Number(value))) {
-    return (
-      <View style={styles.nonDigitContainer}>
-        <Animated.View style={[styles.animatedDigit, animatedStyle]}>
-          <Animated.Text style={[styles.digit, animatedTextStyle]}>
-            ,
-          </Animated.Text>
-        </Animated.View>
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.digitContainer}>
+    <View style={styles.container}>
       <Animated.View style={[styles.animatedDigit, animatedStyle]}>
-        {DIGITS.map((digit, index) => (
-          <Animated.Text key={index} style={[styles.digit, animatedTextStyle]}>
-            {digit}
-          </Animated.Text>
-        ))}
+        <Animated.Text style={[styles.digit, animatedTextStyle]}>
+          ,
+        </Animated.Text>
       </Animated.View>
     </View>
   );
 };
 
-export default Digit;
+export default ThousandsSeparator;
 
 const styles = StyleSheet.create({
-  nonDigitContainer: {
+  container: {
     width: 5,
-    height: 40,
-    overflow: "hidden",
-    alignItems: "center",
-  },
-  digitContainer: {
-    width: 20,
     height: 40,
     overflow: "hidden",
     alignItems: "center",
