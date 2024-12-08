@@ -222,11 +222,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  decimal: {
-    fontSize: 40,
-    height: 40,
-    textAlign: "center",
-  },
 });
 
 export default NumberFlow;

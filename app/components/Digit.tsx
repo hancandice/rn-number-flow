@@ -103,12 +103,6 @@ const Digit = ({
 export default Digit;
 
 const styles = StyleSheet.create({
-  nonDigitContainer: {
-    width: 5,
-    height: 40,
-    overflow: "hidden",
-    alignItems: "center",
-  },
   digitContainer: {
     width: 20,
     height: 40,
