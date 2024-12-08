@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useRef } from "react";
-import { StyleSheet } from "react-native";
+import { StyleProp, StyleSheet, TextStyle } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,
@@ -9,6 +9,7 @@ import Animated, {
 import DecimalPoint from "./components/DecimalPoint";
 import Digit from "./components/Digit";
 import ThousandsSeparator from "./components/ThousandsSeparator";
+import { DIGIT_WIDTH, NON_DIGIT_WIDTH, STEP_HEIGHT } from "./constants";
 import parseNumber from "./utils/parseNumber";
 interface NumberFlowProps {
   value: number | string;
@@ -16,10 +17,11 @@ interface NumberFlowProps {
   increaseColor?: string;
   decreaseColor?: string;
   defaultColor?: string;
+  digitWidth?: number;
+  nonDigitWidth?: number;
+  stepHeight?: number;
+  textStyle?: StyleProp<TextStyle>;
 }
-
-const DIGIT_WIDTH = 20;
-const DECIMAL_POINT_WIDTH = 5;
 
 const NumberFlow = memo(
   ({
@@ -28,6 +30,10 @@ const NumberFlow = memo(
     defaultColor = "white",
     increaseColor = "#68DBBC",
     decreaseColor = "grey",
+    digitWidth = DIGIT_WIDTH,
+    nonDigitWidth = NON_DIGIT_WIDTH,
+    stepHeight = STEP_HEIGHT,
+    textStyle,
   }: NumberFlowProps) => {
     const prevValueRef = useRef(value);
 
@@ -93,14 +99,12 @@ const NumberFlow = memo(
       prevValueDecPart.length > 0 && valueDecPart.length === 0;
 
     // Compute the offset based on disappearing digits
-    const leftOffset = -(disappearingLeftCount * DIGIT_WIDTH);
-    const rightOffset = disappearingRightCount * DIGIT_WIDTH;
-    const decimalAdjustment = isDecimalPointDisappearing
-      ? DECIMAL_POINT_WIDTH
-      : 0;
+    const leftOffset = -(disappearingLeftCount * digitWidth);
+    const rightOffset = disappearingRightCount * digitWidth;
+    const decimalAdjustment = isDecimalPointDisappearing ? nonDigitWidth : 0;
     const nonNumericAdjustment =
       disappearingLeftCount > 0
-        ? prevNonNumericCount * (DIGIT_WIDTH - DECIMAL_POINT_WIDTH)
+        ? prevNonNumericCount * (digitWidth - nonDigitWidth)
         : 0;
 
     const offset =
@@ -150,6 +154,9 @@ const NumberFlow = memo(
           increaseColor={increaseColor}
           decreaseColor={decreaseColor}
           defaultColor={defaultColor}
+          width={digitWidth}
+          height={stepHeight}
+          textStyle={textStyle}
         />
       );
     };
@@ -176,6 +183,9 @@ const NumberFlow = memo(
               increaseColor={increaseColor}
               decreaseColor={decreaseColor}
               defaultColor={defaultColor}
+              width={nonDigitWidth}
+              height={stepHeight}
+              textStyle={textStyle}
             />
           );
         })}
@@ -191,6 +201,9 @@ const NumberFlow = memo(
             increaseColor={increaseColor}
             decreaseColor={decreaseColor}
             defaultColor={defaultColor}
+            width={nonDigitWidth}
+            height={stepHeight}
+            textStyle={textStyle}
           />
         )}
 
@@ -218,6 +231,7 @@ NumberFlow.displayName = "NumberFlow";
 
 const styles = StyleSheet.create({
   container: {
+    position: "absolute",
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",

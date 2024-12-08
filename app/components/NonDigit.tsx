@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleProp, StyleSheet, TextStyle, View } from "react-native";
 import Animated, {
   interpolateColor,
   useAnimatedStyle,
@@ -17,6 +17,9 @@ export interface NonDigitProps {
   decreaseColor: string;
   defaultColor: string;
   character: string;
+  width: number;
+  height: number;
+  textStyle?: StyleProp<TextStyle>;
 }
 
 const NonDigit: React.FC<NonDigitProps> = ({
@@ -29,6 +32,9 @@ const NonDigit: React.FC<NonDigitProps> = ({
   decreaseColor,
   defaultColor,
   character,
+  width,
+  height,
+  textStyle,
 }) => {
   const opacity = useSharedValue(fadeIn ? 0 : 1);
   const colorProgress = useSharedValue(0);
@@ -60,9 +66,11 @@ const NonDigit: React.FC<NonDigitProps> = ({
   });
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { width, height }]}>
       <Animated.View style={[styles.animatedDigit, animatedStyle]}>
-        <Animated.Text style={[styles.digit, animatedTextStyle]}>
+        <Animated.Text
+          style={[styles.digit, textStyle, { height }, animatedTextStyle]}
+        >
           {character}
         </Animated.Text>
       </Animated.View>
@@ -74,8 +82,6 @@ export default NonDigit;
 
 const styles = StyleSheet.create({
   container: {
-    width: 5,
-    height: 40,
     overflow: "hidden",
     alignItems: "center",
   },
@@ -84,7 +90,6 @@ const styles = StyleSheet.create({
   },
   digit: {
     fontSize: 30,
-    height: 40,
     textAlign: "center",
   },
 });

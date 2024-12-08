@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleProp, StyleSheet, TextStyle, View } from "react-native";
 import Animated, {
   interpolateColor,
   useAnimatedStyle,
@@ -18,6 +18,9 @@ interface DigitProps {
   increaseColor: string;
   decreaseColor: string;
   defaultColor: string;
+  width: number;
+  height: number;
+  textStyle?: StyleProp<TextStyle>;
 }
 
 const TOTAL_DIGITS = 10; // 0-9
@@ -38,10 +41,11 @@ const Digit = ({
   increaseColor,
   decreaseColor,
   defaultColor,
+  width,
+  height,
+  textStyle,
 }: DigitProps) => {
-  const stepHeight = 40; // Each digit's height
-
-  const initialPosition = -(prevValue + TOTAL_DIGITS) * stepHeight;
+  const initialPosition = -(prevValue + TOTAL_DIGITS) * height;
 
   const translateY = useSharedValue(initialPosition);
   const opacity = useSharedValue(fadeIn ? 0 : 1);
@@ -68,8 +72,8 @@ const Digit = ({
 
   const targetValue =
     direction === "up"
-      ? initialPosition - distance * stepHeight
-      : initialPosition + distance * stepHeight;
+      ? initialPosition - distance * height
+      : initialPosition + distance * height;
 
   useEffect(() => {
     translateY.value = initialPosition;
@@ -88,10 +92,13 @@ const Digit = ({
   });
 
   return (
-    <View style={styles.digitContainer}>
+    <View style={[styles.digitContainer, { width, height }]}>
       <Animated.View style={[styles.animatedDigit, animatedStyle]}>
         {DIGITS.map((digit, index) => (
-          <Animated.Text key={index} style={[styles.digit, animatedTextStyle]}>
+          <Animated.Text
+            key={index}
+            style={[styles.digit, textStyle, { height }, animatedTextStyle]}
+          >
             {digit}
           </Animated.Text>
         ))}
@@ -104,8 +111,6 @@ export default Digit;
 
 const styles = StyleSheet.create({
   digitContainer: {
-    width: 20,
-    height: 40,
     overflow: "hidden",
     alignItems: "center",
   },
@@ -114,7 +119,6 @@ const styles = StyleSheet.create({
   },
   digit: {
     fontSize: 30,
-    height: 40,
     textAlign: "center",
   },
 });

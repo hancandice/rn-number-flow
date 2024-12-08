@@ -62,10 +62,17 @@ const App: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>₿ Bitcoin Price Tracker</Text>
       {/* Slot Machine Display */}
       <View style={styles.slotContainer}>
-        <NumberFlow value={value} duration={900} />
+        <NumberFlow
+          value={value}
+          duration={900}
+          defaultColor="purple"
+          textStyle={{ fontSize: 60 }}
+          stepHeight={60}
+          digitWidth={35}
+          nonDigitWidth={10}
+        />
       </View>
 
       <View style={styles.buttonContainer}>
@@ -104,9 +111,9 @@ const App: React.FC = () => {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => setValue(formatNumber("60349.57"))}
+          onPress={() => setValue(formatNumber("62321865.57"))}
         >
-          <Text style={styles.buttonText}>Reset to $60349.57</Text>
+          <Text style={styles.buttonText}>Reset to $62,321,865.57</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -125,27 +132,25 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#1a1a1a", // Dark background
+    backgroundColor: "#f8f8f6", // 전통 한지 느낌의 배경색
     paddingHorizontal: 20,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#f2a900", // Bitcoin orange
-    marginBottom: 20,
-  },
   slotContainer: {
+    width: "100%",
+    height: 100,
     marginVertical: 50,
     padding: 30,
-    borderRadius: 10,
-    backgroundColor: "#292929",
+    borderRadius: 15, // 부드러운 곡선
+    backgroundColor: "#FAE1D0", // 은은한 살구색 (전통 한복에서 사용되는 색감)
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#f2a900",
-    shadowOpacity: 0.7,
-    shadowRadius: 20,
+    borderWidth: 2,
+    borderColor: "#E11D48", // 밝은 붉은색 (오방색 중 적색)
+    shadowColor: "#00000030", // 은은한 그림자
+    shadowOpacity: 0.6,
+    shadowRadius: 10,
     shadowOffset: { width: 0, height: 0 },
-    elevation: 10,
+    elevation: 6,
   },
   buttonContainer: {
     width: "80%",
@@ -154,18 +159,30 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   button: {
-    backgroundColor: "#f2a900", // Bitcoin orange
+    backgroundColor: "#FFFFFF", // 순백색 (오방색 중 흰색)
     paddingVertical: 15,
     paddingHorizontal: 20,
-    borderRadius: 10,
+    borderRadius: 20,
     marginVertical: 10,
     width: "100%",
     alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#1E3A8A", // 짙은 파랑 테두리
+    shadowColor: "#00000020",
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 5,
   },
   buttonText: {
     fontSize: 16,
-    fontWeight: "bold",
-    color: "#1a1a1a", // Dark text for contrast
+    fontWeight: "600",
+    color: "#1E3A8A", // 짙은 파랑 텍스트
+    textShadowColor: "#00000010",
+    textShadowRadius: 2,
+    textShadowOffset: { width: 0, height: 1 },
+    letterSpacing: 1,
+    fontFamily: "Apple SD Gothic Neo", // 한국적인 고딕 서체
   },
 });
 
