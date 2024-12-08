@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import NumberFlow from "./NumberFlow"; // Import the NumberFlow component
+import NumberFlow from "./NumberFlow";
 
 // Function to format numbers with commas
 const formatNumber = (num: string | number): string => {
@@ -90,9 +90,9 @@ const App: React.FC = () => {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => setValue(formatNumber("55458.57"))}
+          onPress={() => setValue(formatNumber("1.23"))}
         >
-          <Text style={styles.buttonText}>Reset to $55,458.57</Text>
+          <Text style={styles.buttonText}>Reset to $1.23</Text>
         </TouchableOpacity>
 
         <TouchableOpacity

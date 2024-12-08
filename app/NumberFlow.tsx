@@ -8,6 +8,8 @@ import Animated, {
 } from "react-native-reanimated";
 import DecimalPoint from "./components/DecimalPoint";
 import Digit from "./components/Digit";
+import ThousandsSeparator from "./components/ThousandsSeparator";
+import parseNumber from "./utils/parseNumber";
 interface NumberFlowProps {
   value: number | string;
   duration?: number;
@@ -18,14 +20,14 @@ interface NumberFlowProps {
 
 const DIGIT_WIDTH = 20;
 
-const NumberFlow: React.FC<NumberFlowProps> = memo(
+const NumberFlow = memo(
   ({
     value,
     duration = 1000,
     defaultColor = "white",
     increaseColor = "#68DBBC",
     decreaseColor = "grey",
-  }) => {
+  }: NumberFlowProps) => {
     const prevValueRef = useRef(value);
 
     useEffect(() => {
@@ -46,27 +48,38 @@ const NumberFlow: React.FC<NumberFlowProps> = memo(
     const paddedValueDec = valueDecPart.padEnd(maxDecLength, "0");
     const paddedPrevValueDec = prevValueDecPart.padEnd(maxDecLength, "0");
 
-    const valueIntDigits = paddedValueInt.split("").map(Number);
-    const prevValueIntDigits = paddedPrevValueInt.split("").map(Number);
+    const valueIntDigits = paddedValueInt
+      .split("")
+      .map((char) => (isNaN(Number(char)) ? char : Number(char)));
 
-    const valueDecDigits = paddedValueDec.split("").map(Number);
-    const prevValueDecDigits = paddedPrevValueDec.split("").map(Number);
+    const prevValueIntDigits = paddedPrevValueInt
+      .split("")
+      .map((char) => (isNaN(Number(char)) ? char : Number(char)));
+
+    const valueDecDigits = paddedValueDec
+      .split("")
+      .map((char) => (isNaN(Number(char)) ? char : Number(char)));
+
+    const prevValueDecDigits = paddedPrevValueDec
+      .split("")
+      .map((char) => (isNaN(Number(char)) ? char : Number(char)));
 
     const direction =
-      parseFloat(valueStr) >= parseFloat(prevValueStr) ? "up" : "down";
+      parseNumber(value) >= parseNumber(prevValueRef.current) ? "up" : "down";
 
     const translateX = useSharedValue(0);
 
     // Calculate disappearing digits on the left (integer part)
     const disappearingLeftCount = valueIntDigits.reduce(
-      (count, _, index) =>
+      (count: number, _, index: number) =>
         index < maxIntLength - valueIntPart.length ? count + 1 : count,
       0
     );
 
     // Calculate disappearing digits on the right (decimal part)
     const disappearingRightCount = valueDecDigits.reduce(
-      (count, _, index) => (index >= valueDecPart.length ? count + 1 : count),
+      (count: number, _, index: number) =>
+        index >= valueDecPart.length ? count + 1 : count,
       0
     );
 
@@ -131,15 +144,28 @@ const NumberFlow: React.FC<NumberFlowProps> = memo(
     return (
       <Animated.View style={[styles.container, animatedStyle]}>
         {/* Integer Part */}
-        {valueIntDigits.map((digit, index) =>
-          renderDigit(
-            `int-${index}`,
-            digit,
-            prevValueIntDigits[index],
-            index,
-            false
-          )
-        )}
+        {valueIntDigits.map((digit, index) => {
+          const prevDigit = prevValueIntDigits[index];
+          if (typeof digit === "number" && typeof prevDigit === "number") {
+            return renderDigit(`int-${index}`, digit, prevDigit, index, false);
+          }
+          return (
+            <ThousandsSeparator
+              key={`thousands-separator-${index}`}
+              direction={direction}
+              shouldChangeColor={shouldChangeColor}
+              duration={duration}
+              fadeOut={index < maxIntLength - valueIntPart.length}
+              fadeIn={
+                index < maxIntLength - prevValueIntPart.length &&
+                prevDigit === 0
+              }
+              increaseColor={increaseColor}
+              decreaseColor={decreaseColor}
+              defaultColor={defaultColor}
+            />
+          );
+        })}
 
         {/* Decimal Point */}
         {valueDecPart.length > 0 && (
@@ -156,15 +182,20 @@ const NumberFlow: React.FC<NumberFlowProps> = memo(
         )}
 
         {/* Decimal Part */}
-        {valueDecDigits.map((digit, index) =>
-          renderDigit(
-            `dec-${index}`,
-            digit,
-            prevValueDecDigits[index],
-            index,
-            true
-          )
-        )}
+        {valueDecDigits.map((digit, index) => {
+          if (
+            typeof digit === "number" &&
+            typeof prevValueDecDigits[index] === "number"
+          ) {
+            return renderDigit(
+              `dec-${index}`,
+              digit,
+              prevValueDecDigits[index],
+              index,
+              true
+            );
+          }
+        })}
       </Animated.View>
     );
   }

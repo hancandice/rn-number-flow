@@ -27,7 +27,7 @@ const DIGITS = Array.from(
   (_, i) => i % TOTAL_DIGITS
 );
 
-const Digit: React.FC<DigitProps> = ({
+const Digit = ({
   value,
   prevValue,
   direction,
@@ -38,7 +38,7 @@ const Digit: React.FC<DigitProps> = ({
   increaseColor,
   decreaseColor,
   defaultColor,
-}) => {
+}: DigitProps) => {
   const stepHeight = 40; // Each digit's height
 
   const initialPosition = -(prevValue + TOTAL_DIGITS) * stepHeight;
@@ -46,6 +46,20 @@ const Digit: React.FC<DigitProps> = ({
   const translateY = useSharedValue(initialPosition);
   const opacity = useSharedValue(fadeIn ? 0 : 1);
   const colorProgress = useSharedValue(0);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+    opacity: opacity.value,
+  }));
+
+  const animatedTextStyle = useAnimatedStyle(() => {
+    const animatedColor = interpolateColor(
+      colorProgress.value,
+      [0, 1],
+      [direction === "up" ? increaseColor : decreaseColor, defaultColor]
+    );
+    return { color: animatedColor };
+  });
 
   const distance =
     direction === "up"
@@ -72,32 +86,6 @@ const Digit: React.FC<DigitProps> = ({
 
     colorProgress.value = shouldChangeColor ? withTiming(1, { duration }) : 1;
   });
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-    opacity: opacity.value,
-  }));
-
-  const animatedTextStyle = useAnimatedStyle(() => {
-    const animatedColor = interpolateColor(
-      colorProgress.value,
-      [0, 1],
-      [direction === "up" ? increaseColor : decreaseColor, defaultColor]
-    );
-    return { color: animatedColor };
-  });
-
-  if (isNaN(Number(prevValue)) || isNaN(Number(value))) {
-    return (
-      <View style={styles.nonDigitContainer}>
-        <Animated.View style={[styles.animatedDigit, animatedStyle]}>
-          <Animated.Text style={[styles.digit, animatedTextStyle]}>
-            ,
-          </Animated.Text>
-        </Animated.View>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.digitContainer}>
