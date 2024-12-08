@@ -11,7 +11,7 @@ const formatNumber = (num: string | number): string => {
 };
 
 const App: React.FC = () => {
-  const [value, setValue] = useState<string>(formatNumber("50000")); // Initial BTC price as a formatted string
+  const [value, setValue] = useState<string>(formatNumber("50000000")); // Initial BTC price as a formatted string
   const [isAutoChanging, setIsAutoChanging] = useState<boolean>(false); // Toggle for auto-change mode
 
   // Function to generate random price changes
@@ -53,7 +53,7 @@ const App: React.FC = () => {
         setIsAutoChanging(false);
         break;
       case "reset":
-        setValue(formatNumber("50000")); // Reset to initial BTC price as a formatted string
+        setValue(formatNumber("50000000")); // Reset to initial BTC price as a formatted string
         break;
       default:
         break;
@@ -85,7 +85,7 @@ const App: React.FC = () => {
           style={styles.button}
           onPress={() => handleButtonPress("reset")}
         >
-          <Text style={styles.buttonText}>Reset to $50,000</Text>
+          <Text style={styles.buttonText}>Reset to $50000000</Text>
         </TouchableOpacity>
 
         <TouchableOpacity

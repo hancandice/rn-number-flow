@@ -19,6 +19,7 @@ interface NumberFlowProps {
 }
 
 const DIGIT_WIDTH = 20;
+const DECIMAL_POINT_WIDTH = 5;
 
 const NumberFlow = memo(
   ({
@@ -76,6 +77,10 @@ const NumberFlow = memo(
       0
     );
 
+    const prevNonNumericCount = prevValueIntDigits.filter((digit) =>
+      isNaN(Number(digit))
+    ).length;
+
     // Calculate disappearing digits on the right (decimal part)
     const disappearingRightCount = valueDecDigits.reduce(
       (count: number, _, index: number) =>
@@ -84,14 +89,22 @@ const NumberFlow = memo(
     );
 
     // Check if the decimal point is disappearing
-
-    // const isDecimalPointDisappearing =
-    //   prevValueDecPart.length > 0 && valueDecPart.length === 0;
+    const isDecimalPointDisappearing =
+      prevValueDecPart.length > 0 && valueDecPart.length === 0;
 
     // Compute the offset based on disappearing digits
+    const leftOffset = -(disappearingLeftCount * DIGIT_WIDTH);
+    const rightOffset = disappearingRightCount * DIGIT_WIDTH;
+    const decimalAdjustment = isDecimalPointDisappearing
+      ? DECIMAL_POINT_WIDTH
+      : 0;
+    const nonNumericAdjustment =
+      disappearingLeftCount > 0
+        ? prevNonNumericCount * (DIGIT_WIDTH - DECIMAL_POINT_WIDTH)
+        : 0;
+
     const offset =
-      -(disappearingLeftCount * DIGIT_WIDTH) / 2 +
-      (disappearingRightCount * DIGIT_WIDTH) / 2;
+      (leftOffset + rightOffset + decimalAdjustment + nonNumericAdjustment) / 2;
 
     useDerivedValue(() => {
       translateX.value = withTiming(offset, { duration });
